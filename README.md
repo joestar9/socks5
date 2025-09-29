@@ -4,6 +4,11 @@ To install the Psiphon service script, execute the following command:
 curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/Pinstaller.sh | bash
 ```
 
+check Psiphon ip
+
+```bash
+curl --socks5-hostname 127.0.0.1:7001 https://ifconfig.me
+```
 
 To install the Tor service, execute the following command:
 
@@ -11,9 +16,8 @@ To install the Tor service, execute the following command:
 curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/tor.sh | bash
 ```
 
-check tor ip
+check Tor ip
 
 ```bash
-curl --socks5-hostname 127.0.0.1:7001 https://ifconfig.me
+curl --socks5-hostname 127.0.0.1:6001 https://ifconfig.me
 ```
-
