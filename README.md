@@ -1,12 +1,12 @@
 To install the Psiphon service script, execute the following command:
 
 ```bash
-curl -s https://raw.githubusercontent.com/joestar9/PsiphonLinux/refs/heads/main/Pinstaller.sh | bash
+curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/Pinstaller.sh | bash
 ```
 
 
 To install the Tor service, execute the following command:
 
 ```bash
-curl -s https://raw.githubusercontent.com/joestar9/PsiphonLinux/refs/heads/main/tor.sh | bash
+curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/tor.sh | bash
 ```
