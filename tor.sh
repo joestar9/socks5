@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# tor-speed-opt.sh
-# Install tor if missing, overwrite per-country torrc with speed/persistence tuned config,
-# then restart tor-proxy@<code>.service instances.
 set -euo pipefail
 IFS=$'\n\t'
 
