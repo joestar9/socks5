@@ -16,7 +16,7 @@ set -euo pipefail
 BASE_DIR="/etc/psiphon"
 COUNTRIES=( "AT" "BE" "BG" "CA" "CH" "CZ" "DE" "DK" "EE" "ES" "FI" "FR" "GB" "HU" "IE" "IN" "IT" "JP" "LV" "NL" "NO" "PL" "RO" "RS" "SE" "SG" "SK" "US" )
 BIN_URL="https://raw.githubusercontent.com/Psiphon-Labs/psiphon-tunnel-core-binaries/master/linux/psiphon-tunnel-core-x86_64"
-CONFIG_URL="https://raw.githubusercontent.com/090ebier/PsiphonLinux/main/psiphon.config"
+CONFIG_URL="https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/psiphon.config"
 BIN_NAME="psiphon-tunnel-core-x86_64"
 CONFIG_NAME="psiphon.config"
 
