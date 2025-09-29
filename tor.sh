@@ -1,64 +1,66 @@
 #!/usr/bin/env bash
-# remove-tor-clean.sh
-# Completely remove tor, tor-related packages, systemd units and data dirs.
+# remove-tor-clean-fixed.sh
+# Robust removal of tor + tor-proxy instances and related files.
 set -euo pipefail
 
 [ "$(id -u)" -eq 0 ] || { echo "Run as root (sudo)"; exit 1; }
 
-echo "Stopping tor services (if any)..."
-# stop main tor service
+echo "[info] Stopping main tor.service if present..."
 systemctl stop tor.service >/dev/null 2>&1 || true
 systemctl disable tor.service >/dev/null 2>&1 || true
 
-# stop and disable any tor-proxy@*.service instances
-units=$(systemctl --no-legend --no-pager list-units 'tor-proxy@*.service' --type=service 2>/dev/null | awk '{print $1}' || true)
-if [ -n "$units" ]; then
-  echo "$units" | xargs -r -n1 systemctl stop || true
-  echo "$units" | xargs -r -n1 systemctl disable || true
-fi
+echo "[info] Stopping and disabling tor-proxy@*.service (safe extraction)..."
+# stop actual units matching pattern (avoid decorative chars)
+systemctl list-units --type=service --all --no-legend --no-pager \
+  | grep -oE 'tor-proxy@[A-Za-z0-9._-]+\.service' \
+  | sort -u \
+  | xargs -r -n1 sudo systemctl stop || true
 
-# remove systemd unit files we created
-echo "Removing systemd unit files..."
+systemctl list-unit-files --no-legend --no-pager \
+  | grep -oE 'tor-proxy@[A-Za-z0-9._-]+\.service' \
+  | sort -u \
+  | xargs -r -n1 sudo systemctl disable || true
+
+echo "[info] Removing systemd unit files we created..."
 rm -f /etc/systemd/system/tor-proxy@.service
 rm -rf /etc/systemd/system/tor-proxy@.service.d
 systemctl daemon-reload >/dev/null 2>&1 || true
 systemctl reset-failed >/dev/null 2>&1 || true
 
-# purge packages (best-effort)
-echo "Purging tor packages (apt)..."
+echo "[info] Purging tor packages (best-effort, apt)..."
 apt-get update -qq || true
-apt-get purge -y tor tor-geoipdb torsocks torbrowser-launcher 2>/dev/null || true
+apt-get purge -y tor torsocks torbrowser-launcher 2>/dev/null || true
 apt-get autoremove -y 2>/dev/null || true
 apt-get autoclean -y 2>/dev/null || true
 
-# remove config/data/log dirs created by installer
-echo "Removing config, data and logs..."
+echo "[info] Removing config/data/log directories created by installer..."
 rm -rf /etc/tor-proxy
 rm -rf /var/lib/tor
 rm -rf /var/log/tor
-# remove default system tor config (if you want full cleanup)
-rm -rf /etc/tor
 
-# (optional) move journal entries related to tor out of the way (safe)
-# Note: don't delete system journals blindly; move if present
-journal_dir=/var/log/journal
-if [ -d "$journal_dir" ]; then
-  # move tor-specific journal files if any filename contains 'tor' or 'debian-tor'
-  mkdir -p /root/backup-journals
-  find "$journal_dir" -type f -iname '*tor*' -o -iname '*debian-tor*' -print0 2>/dev/null | xargs -0 -r -I{} mv -f {} /root/backup-journals/ 2>/dev/null || true
+# optional: don't blindly delete distro /etc/tor unless user wants full wipe
+if [ -d /etc/tor ]; then
+  echo "[warn] Removing /etc/tor (system tor config). This is irreversible."
+  rm -rf /etc/tor
 fi
 
-# remove system user (best-effort) and its home if present
+# Move any journal files that have 'tor' in name to backup (safer than rm)
+journal_dir=/var/log/journal
+if [ -d "$journal_dir" ]; then
+  mkdir -p /root/backup-journals
+  find "$journal_dir" -type f \( -iname '*tor*' -o -iname '*debian-tor*' \) -print0 \
+    | xargs -0 -r -I{} mv -f {} /root/backup-journals/ 2>/dev/null || true
+fi
+
+# remove system user (best-effort)
 if id -u debian-tor >/dev/null 2>&1; then
-  echo "Removing system user debian-tor..."
   userdel -r debian-tor >/dev/null 2>&1 || true
 fi
 
-# final systemd cleanup
 systemctl daemon-reload >/dev/null 2>&1 || true
 systemctl reset-failed >/dev/null 2>&1 || true
 
-echo "Done. Tor and related files removed. Backup journals (if moved) are in /root/backup-journals (if any)."
+echo "[done] Tor and related files removed. If any journal files were moved, see /root/backup-journals/"
 
 #!/usr/bin/env bash
 set -euo pipefail
