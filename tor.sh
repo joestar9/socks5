@@ -43,24 +43,19 @@ for i in "${!COUNTRIES[@]}"; do
   chmod 640 "$logfile" || true
 
   cat > "$etcdir/torrc" <<EOF
-# speed-first torrc for $code
+#torrc for $code
 SocksPort 127.0.0.1:$socks
 DataDirectory $datadir
 ExitNodes {$code}
 StrictNodes 1
 RunAsDaemon 0
 Log notice file $logfile
-
 NumEntryGuards 1
 UseEntryGuards 1
-
 NewCircuitPeriod 86400
 MaxCircuitDirtiness 86400
-
 CircuitBuildTimeout 60
-
 AvoidDiskWrites 1
-
 MaxClientCircuitsPending 1024
 EOF
 
