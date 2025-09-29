@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-COUNTRIES=(ua tr de us fr uk at be ro ca sg jp ie fi es pl)
+COUNTRIES=(at es us ua ie uk be tr ro jp sg fr fi ca pl nl se ch ru md al cn hk au ae ph by)
 SOCKS_BASE=6001
 BASE_ETC=/etc/tor-proxy
 BASE_VAR=/var/lib/tor
