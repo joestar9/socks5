@@ -49,27 +49,21 @@ for i in "${!COUNTRIES[@]}"; do
 # speed-first torrc for $code
 SocksPort 127.0.0.1:$socks
 DataDirectory $datadir
-ExitNodes {$code}        # lowercase as requested
+ExitNodes {$code}
 StrictNodes 1
 RunAsDaemon 0
 Log notice file $logfile
 
-# ----- speed & persistence tuning (security deprioritized) -----
-# keep single entry guard to avoid churn
 NumEntryGuards 1
 UseEntryGuards 1
 
-# make circuits last long (reduce rebuilds)
-NewCircuitPeriod 86400       # build a new circuit once per day
-MaxCircuitDirtiness 86400    # keep circuits 'clean' for 1 day
+NewCircuitPeriod 86400
+MaxCircuitDirtiness 86400
 
-# allow more time to build circuits (avoid frequent failures)
 CircuitBuildTimeout 60
 
-# reduce disk writes where possible
 AvoidDiskWrites 1
 
-# increase concurrency limits (helps throughput)
 MaxClientCircuitsPending 1024
 EOF
 
