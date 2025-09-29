@@ -49,7 +49,7 @@ DataDirectory $datadir
 ExitNodes {$code}
 StrictNodes 1
 RunAsDaemon 0
-Log notice file $logfile
+#Log notice file $logfile
 NumEntryGuards 1
 UseEntryGuards 1
 NewCircuitPeriod 86400
