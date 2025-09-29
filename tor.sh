@@ -66,7 +66,7 @@ echo "[done] Tor and related files removed. If any journal files were moved, see
 set -euo pipefail
 IFS=$'\n\t'
 
-COUNTRIES=(al at au be by ca ch cn es fi fr hk ie jp md nl ph pl ro ru sg se tr ua uk us)
+COUNTRIES=(al at au be by ca ch es fi fr hk jp md nl pl ro ru sg se tr ua gb us)
 SOCKS_BASE=6001
 BASE_ETC=/etc/tor-proxy
 BASE_VAR=/var/lib/tor
