@@ -1,4 +1,66 @@
 #!/usr/bin/env bash
+# remove-tor-clean.sh
+# Completely remove tor, tor-related packages, systemd units and data dirs.
+set -euo pipefail
+
+[ "$(id -u)" -eq 0 ] || { echo "Run as root (sudo)"; exit 1; }
+
+echo "Stopping tor services (if any)..."
+# stop main tor service
+systemctl stop tor.service >/dev/null 2>&1 || true
+systemctl disable tor.service >/dev/null 2>&1 || true
+
+# stop and disable any tor-proxy@*.service instances
+units=$(systemctl --no-legend --no-pager list-units 'tor-proxy@*.service' --type=service 2>/dev/null | awk '{print $1}' || true)
+if [ -n "$units" ]; then
+  echo "$units" | xargs -r -n1 systemctl stop || true
+  echo "$units" | xargs -r -n1 systemctl disable || true
+fi
+
+# remove systemd unit files we created
+echo "Removing systemd unit files..."
+rm -f /etc/systemd/system/tor-proxy@.service
+rm -rf /etc/systemd/system/tor-proxy@.service.d
+systemctl daemon-reload >/dev/null 2>&1 || true
+systemctl reset-failed >/dev/null 2>&1 || true
+
+# purge packages (best-effort)
+echo "Purging tor packages (apt)..."
+apt-get update -qq || true
+apt-get purge -y tor tor-geoipdb torsocks torbrowser-launcher 2>/dev/null || true
+apt-get autoremove -y 2>/dev/null || true
+apt-get autoclean -y 2>/dev/null || true
+
+# remove config/data/log dirs created by installer
+echo "Removing config, data and logs..."
+rm -rf /etc/tor-proxy
+rm -rf /var/lib/tor
+rm -rf /var/log/tor
+# remove default system tor config (if you want full cleanup)
+rm -rf /etc/tor
+
+# (optional) move journal entries related to tor out of the way (safe)
+# Note: don't delete system journals blindly; move if present
+journal_dir=/var/log/journal
+if [ -d "$journal_dir" ]; then
+  # move tor-specific journal files if any filename contains 'tor' or 'debian-tor'
+  mkdir -p /root/backup-journals
+  find "$journal_dir" -type f -iname '*tor*' -o -iname '*debian-tor*' -print0 2>/dev/null | xargs -0 -r -I{} mv -f {} /root/backup-journals/ 2>/dev/null || true
+fi
+
+# remove system user (best-effort) and its home if present
+if id -u debian-tor >/dev/null 2>&1; then
+  echo "Removing system user debian-tor..."
+  userdel -r debian-tor >/dev/null 2>&1 || true
+fi
+
+# final systemd cleanup
+systemctl daemon-reload >/dev/null 2>&1 || true
+systemctl reset-failed >/dev/null 2>&1 || true
+
+echo "Done. Tor and related files removed. Backup journals (if moved) are in /root/backup-journals (if any)."
+
+#!/usr/bin/env bash
 set -euo pipefail
 IFS=$'\n\t'
 
