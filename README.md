@@ -5,7 +5,7 @@ curl -s https://raw.githubusercontent.com/joestar9/PsiphonLinux/refs/heads/main/
 ```
 
 
-To install the TOR service, execute the following command:
+To install the Tor service, execute the following command:
 
 ```bash
 curl -s https://raw.githubusercontent.com/joestar9/PsiphonLinux/refs/heads/main/tor.sh | bash
