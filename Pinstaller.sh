@@ -5,7 +5,7 @@ BASE=/etc/psiphon
 BIN_URL="https://raw.githubusercontent.com/Psiphon-Labs/psiphon-tunnel-core-binaries/master/linux/psiphon-tunnel-core-x86_64"
 CFG_URL="https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/psiphon.config"
 BIN=psiphon-tunnel-core-x86_64
-COUNTRIES=(AT BE BG CA CH CZ DE DK EE ES FI FR GB HU IE IN IT JP LV NL NO PL RO RS SE SG SK UA US)
+COUNTRIES=(AT BE CA CH CZ DE DK EE ES FI FR GB IE IN IT JP NL NO PL RO RS SE SG SK US)
 SOCKS_BASE=7001
 
 if [ "$(id -u)" -ne 0 ]; then
