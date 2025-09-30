@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
+# tor.sh  -- minimal, functional per-country tor instances (speed-first)
 set -euo pipefail
 IFS=$'\n\t'
 
+# config
 COUNTRIES=(al at au be by ca ch es fi fr hk jp md nl pl ro ru sg se tr ua gb us)
 SOCKS_BASE=6001
 BASE_ETC=/etc/tor-proxy
@@ -13,22 +15,24 @@ TORBIN=/usr/bin/tor
 
 # install tor if missing
 if [ ! -x "$TORBIN" ]; then
-  echo "[info] Installing tor..."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq
-  apt-get install -y -qq tor || { echo "[error] apt install tor failed"; exit 1; }
+  apt-get install -y -qq tor || { echo "apt install tor failed"; exit 1; }
 fi
 
-# ensure debian-tor user exists
-id -u debian-tor >/dev/null 2>&1 || useradd --system --home-dir /var/lib/tor --shell /usr/sbin/nologin debian-tor || true
+# ensure system user
+if ! id -u debian-tor >/dev/null 2>&1; then
+  useradd --system --home-dir /var/lib/tor --shell /usr/sbin/nologin debian-tor || true
+fi
 
-# create base dirs
+# prepare dirs
+rm -rf "${BASE_ETC:?}"/* 2>/dev/null || true
 mkdir -p "$BASE_ETC" "$BASE_VAR" "$LOG_DIR"
 chown root:root "$BASE_ETC"
 chown -R debian-tor:debian-tor "$BASE_VAR" "$LOG_DIR" 2>/dev/null || true
 chmod 755 "$BASE_ETC" || true
 
-# overwrite torrc for each country with speed-first config
+# write per-country torrcs
 for i in "${!COUNTRIES[@]}"; do
   code="${COUNTRIES[$i]}"
   socks=$((SOCKS_BASE + i))
@@ -39,17 +43,20 @@ for i in "${!COUNTRIES[@]}"; do
   mkdir -p "$etcdir" "$datadir"
   chown -R debian-tor:debian-tor "$datadir"
   chmod 700 "$datadir" || true
-  touch "$logfile"; chown debian-tor:debian-tor "$logfile" 2>/dev/null || true
+  : > "$logfile"
+  chown debian-tor:debian-tor "$logfile" 2>/dev/null || true
   chmod 640 "$logfile" || true
 
   cat > "$etcdir/torrc" <<EOF
-#torrc for $code
+# torrc for $code (speed-first)
 SocksPort 127.0.0.1:$socks
 DataDirectory $datadir
 ExitNodes {$code}
 StrictNodes 1
 RunAsDaemon 0
 Log notice file $logfile
+
+# speed tuning (persistence & throughput over security)
 NumEntryGuards 1
 UseEntryGuards 1
 NewCircuitPeriod 86400
@@ -59,11 +66,9 @@ AvoidDiskWrites 1
 MaxClientCircuitsPending 1024
 EOF
 
-  chmod 644 "$etcdir/torrc"
-  echo "[info] wrote $etcdir/torrc (socks:127.0.0.1:$socks)"
 done
 
-# ensure systemd template (minimal) exists
+# systemd template (minimal)
 cat > /etc/systemd/system/tor-proxy@.service <<'UNIT'
 [Unit]
 Description=Tor proxy instance %i
@@ -82,15 +87,13 @@ WorkingDirectory=/var/lib/tor/%i
 [Install]
 WantedBy=multi-user.target
 UNIT
-
 chmod 644 /etc/systemd/system/tor-proxy@.service
+
 systemctl daemon-reload
 
-# restart all instances
-for c in "${COUNTRIES[@]}"; do
-  systemctl restart "tor-proxy@${c}.service" >/dev/null 2>&1 || echo "[warn] restart failed: $c"
+# enable & start all instances (sequential, minimal output)
+for code in "${COUNTRIES[@]}"; do
+  systemctl enable --now "tor-proxy@${code}.service" >/dev/null 2>&1 || echo "[warn] start failed: $code"
 done
 
-echo "[done] Configs written and instances restarted."
-echo "Check one instance: systemctl status tor-proxy@tr.service"
-echo "Tail logs: journalctl -u tor-proxy@tr.service -f"
+echo "done. SOCKS start at $SOCKS_BASE. check: systemctl status tor-proxy@tr.service"
