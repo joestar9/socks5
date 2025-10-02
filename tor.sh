@@ -155,4 +155,4 @@ done
 
 echo
 echo "[*] Done. Check an instance: systemctl status tor-proxy@tr.service"
-echo "[*] Test SOCKS: curl --socks5-hostname 127.0.0.1:7001 https://ifconfig.me"
+echo "[*] Test SOCKS: curl --socks5-hostname 127.0.0.1:6001 https://ifconfig.me"
