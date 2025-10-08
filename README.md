@@ -21,3 +21,9 @@ check Tor ip
 ```bash
 curl --socks5-hostname 127.0.0.1:6001 https://ifconfig.me
 ```
+
+To install the sysctl service, execute the following command:
+
+```bash
+curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/install-sysctl.sh | bash
+```
