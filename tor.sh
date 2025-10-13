@@ -6,7 +6,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # ----- config -----
-COUNTRIES=(al at au be by ca ch es fi fr hk jp md nl pl ro ru sg se tr ua gb us)
+COUNTRIES=(hk md ru tr ua us)
 SOCKS_BASE=6001
 BASE_ETC=/etc/tor-proxy
 BASE_VAR=/var/lib/tor
