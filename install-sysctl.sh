@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # URL of the remote sysctl.conf
-URL="https://raw.githubusercontent.com/k4yt3x/sysctl/refs/heads/master/sysctl.conf"
+URL="https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/sysctl.conf"
 TARGET_ETC="/etc/sysctl.conf"
 TARGET_D="/etc/sysctl.d/99-k4yt3x.conf"
 TMP="$(mktemp --tmpdir sysctl.XXXXXX)"
