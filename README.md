@@ -27,3 +27,9 @@ To install the sysctl service, execute the following command:
 ```bash
 curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/install-sysctl.sh | bash
 ```
+
+To install the VPS optimizer, execute the following command:
+
+```bash
+curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/optimizer.sh | bash
+```
