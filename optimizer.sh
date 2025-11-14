@@ -204,7 +204,7 @@ net.netfilter.nf_conntrack_max = 262144
 net.nf_conntrack_max = 262144
 
 # Enable fq + BBR
-net.core.default_qdisc = fq
+net.core.default_qdisc = cake
 net.ipv4.tcp_congestion_control = bbr
 net.ipv4.tcp_low_latency = 1
 net.ipv4.tcp_ecn = 1
