@@ -6,10 +6,9 @@ SSH_PORT=8264
 SSHD_CONF='/etc/ssh/sshd_config'
 
 if [ "$(id -u)" -ne 0 ]; then
-  echo "This script must be run as root." >&2
-  exit 1
+	echo "This script must be run as root." >&2
+	exit 1
 fi
-
 
 # Ensure root .ssh exists and correct permissions
 mkdir -p /root/.ssh
@@ -19,25 +18,25 @@ chmod 600 /root/.ssh/authorized_keys
 
 # Add public key if not already present
 if ! grep -Fxq "$PUBKEY" /root/.ssh/authorized_keys; then
-  echo "$PUBKEY" >> /root/.ssh/authorized_keys
-  echo "Public key added to /root/.ssh/authorized_keys"
+	echo "$PUBKEY" >>/root/.ssh/authorized_keys
+	echo "Public key added to /root/.ssh/authorized_keys"
 else
-  echo "Public key already present"
+	echo "Public key already present"
 fi
 
 # Backup sshd_config
-bak="${SSHD_CONF}.bak.$(date +%Y%m%d%H%M%S)"
+bak="${SSHD_CONF}.bak.$(date %Y%m%d%H%M%S)"
 cp -a "$SSHD_CONF" "$bak"
 echo "Backed up $SSHD_CONF -> $bak"
 
 # Helper to set or append directive in sshd_config
 set_sshd_option() {
-  local key="$1" value="$2"
-  if grep -qE "^[#[:space:]]*${key}[[:space:]]+" "$SSHD_CONF"; then
-    sed -ri "s@^[#[:space:]]*${key}[[:space:]]+.*@${key} ${value}@" "$SSHD_CONF"
-  else
-    echo "${key} ${value}" >> "$SSHD_CONF"
-  fi
+	local key="$1" value="$2"
+	if grep -qE "^[#[:space:]]*${key}[[:space:]] " "$SSHD_CONF"; then
+		sed -ri "s@^[#[:space:]]*${key}[[:space:]] .*@${key} ${value}@" "$SSHD_CONF"
+	else
+		echo "${key} ${value}" >>"$SSHD_CONF"
+	fi
 }
 
 # Configure SSH
@@ -66,7 +65,7 @@ ufw --force enable
 apt install -y zram-tools
 
 # Configure /etc/default/zramswap
-cat > /etc/default/zramswap <<EOF
+cat >/etc/default/zramswap <<EOF
 ALGO=lz4
 PERCENT=25
 PRIORITY=100
@@ -79,10 +78,9 @@ echo "ZRAM enabled:"
 zramctl
 swapon --show
 
-
 ####################
-	rm -f /etc/sysctl.d/99-sysctl.conf
-	cat >'/etc/sysctl.d/99-sysctl.conf' <<EOF
+rm -f /etc/sysctl.d/99-sysctl.conf
+cat >'/etc/sysctl.d/99-sysctl.conf' <<EOF
 net.ipv4.tcp_fack = 1
 net.ipv4.tcp_early_retrans = 3
 net.ipv4.neigh.default.unres_qlen=10000  
@@ -165,8 +163,8 @@ net.ipv4.tcp_congestion_control = bbr
 net.ipv4.tcp_low_latency = 1
 EOF
 
-	rm -f /etc/sysctl.conf
-    cat << EOF > /etc/sysctl.conf
+rm -f /etc/sysctl.conf
+cat <<EOF >/etc/sysctl.conf
 net.ipv4.tcp_fack = 1
 net.ipv4.tcp_early_retrans = 3
 net.ipv4.neigh.default.unres_qlen=10000  
@@ -249,11 +247,11 @@ net.ipv4.tcp_congestion_control = bbr
 net.ipv4.tcp_low_latency = 1
 EOF
 
-	sysctl -p
-	sysctl --system
-	echo always >/sys/kernel/mm/transparent_hugepage/enabled
+sysctl -p
+sysctl --system
+echo always >/sys/kernel/mm/transparent_hugepage/enabled
 
-	cat >'/etc/systemd/system.conf' <<EOF
+cat >'/etc/systemd/system.conf' <<EOF
 [Manager]
 #DefaultTimeoutStartSec=90s
 DefaultTimeoutStopSec=30s
@@ -264,7 +262,7 @@ DefaultLimitNPROC=infinity
 DefaultTasksMax=infinity
 EOF
 
-	cat >'/etc/security/limits.conf' <<EOF
+cat >'/etc/security/limits.conf' <<EOF
 root     soft   nofile    1000000
 root     hard   nofile    1000000
 root     soft   nproc     unlimited
@@ -283,18 +281,18 @@ root     soft   memlock   unlimited
 *     soft   memlock   unlimited
 EOF
 
-	sed -i '/ulimit -SHn/d' /etc/profile
-	sed -i '/ulimit -SHu/d' /etc/profile
-	echo "ulimit -SHn 1000000" >>/etc/profile
+sed -i '/ulimit -SHn/d' /etc/profile
+sed -i '/ulimit -SHu/d' /etc/profile
+echo "ulimit -SHn 1000000" >>/etc/profile
 
-	if grep -q "pam_limits.so" /etc/pam.d/common-session; then
-		:
-	else
-		sed -i '/required pam_limits.so/d' /etc/pam.d/common-session
-		echo "session required pam_limits.so" >>/etc/pam.d/common-session
-	fi
-	systemctl daemon-reload
-	echo -e "${Info} Optimization has finished applying and may require a restart!"
+if grep -q "pam_limits.so" /etc/pam.d/common-session; then
+	:
+else
+	sed -i '/required pam_limits.so/d' /etc/pam.d/common-session
+	echo "session required pam_limits.so" >>/etc/pam.d/common-session
+fi
+systemctl daemon-reload
+echo -e "${Info} Optimization has finished applying and may require a restart!"
 
 #######################
 
