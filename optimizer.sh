@@ -24,10 +24,6 @@ else
 	echo "Public key already present"
 fi
 
-# Backup sshd_config
-bak="${SSHD_CONF}.bak.$(date %Y%m%d%H%M%S)"
-cp -a "$SSHD_CONF" "$bak"
-echo "Backed up $SSHD_CONF -> $bak"
 
 # Helper to set or append directive in sshd_config
 set_sshd_option() {
