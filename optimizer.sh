@@ -229,6 +229,7 @@ net.ipv6.tcp_ecn = 1
 EOF
 
 # Apply changes
+depmod -a
 sysctl --system
 systemctl daemon-reload
 systemctl restart systemd-journald.service
