@@ -62,6 +62,23 @@ ufw allow 443/tcp
 ufw --force disable
 ufw --force enable
 
+# Install zram-tools
+apt install -y zram-tools
+
+# Configure /etc/default/zramswap
+cat > /etc/default/zramswap <<EOF
+ALGO=lz4
+PERCENT=25
+PRIORITY=100
+EOF
+
+# Restart zramswap service
+systemctl restart zramswap
+
+echo "ZRAM enabled:"
+zramctl
+swapon --show
+
 # --- system.conf ---
 rm -f /etc/systemd/system.conf
 cat << EOF > /etc/systemd/system.conf
