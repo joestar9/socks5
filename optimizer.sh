@@ -81,8 +81,6 @@ swapon --show
 
 
 ####################
-
-optimizing_system() {
 	if [ ! -f "/etc/sysctl.d/99-sysctl.conf" ]; then
 		touch /etc/sysctl.d/99-sysctl.conf
 	fi
@@ -391,7 +389,6 @@ EOF
 	fi
 	systemctl daemon-reload
 	echo -e "${Info} Optimization has finished applying and may require a restart!"
-}
 
 #######################
 
