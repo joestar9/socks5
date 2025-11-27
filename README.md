@@ -38,6 +38,6 @@ curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/optimi
 To install the rw-backup, execute the following command:
 
 ```bash
-curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/rw-backup.sh | bash
+curl -o ~/backup-restore.sh https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/rw-backup.sh && chmod +x ~/backup-restore.sh && ~/backup-restore.sh
 ```
 
