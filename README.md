@@ -33,3 +33,11 @@ To install the VPS optimizer, execute the following command:
 ```bash
 curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/optimizer.sh | bash
 ```
+
+
+To install the rw-backup, execute the following command:
+
+```bash
+curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/rw-backup.sh | bash
+```
+
