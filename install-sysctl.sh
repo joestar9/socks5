@@ -15,14 +15,19 @@ echo ">>> Starting Clean & Idempotent Server Setup..."
 
 # --- 1. SSH Setup (Smart Update) ---
 echo "[+] Configuring SSH..."
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+
+# FIX: Ensure the file exists before grepping to avoid "No such file" error
+touch ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+
 # Only add key if not present
 grep -qF "$SSH_KEY" ~/.ssh/authorized_keys || echo "$SSH_KEY" >> ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
 
 # Reset Port and Settings in sshd_config to ensure no duplicates
 sed -i 's/^Port .*/#&/' /etc/ssh/sshd_config
-sed -i "/^Port $SSH_PORT/d" /etc/ssh/sshd_config # Remove specific port line if exists to avoid duplicate
+sed -i "/^Port $SSH_PORT/d" /etc/ssh/sshd_config # Remove specific port line if exists
 echo "Port $SSH_PORT" >> /etc/ssh/sshd_config    # Add it fresh
 
 # Force security settings
