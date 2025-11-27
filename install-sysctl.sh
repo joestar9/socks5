@@ -5,57 +5,88 @@ set -e
 SSH_PORT=8264
 SSH_KEY="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDdcATaB3hKAJsbRByDEEvDEOeRWRUgPp8rU5HNtDmWA"
 
-# Define custom file paths
+# Configuration file paths (Using .d directories for cleanliness)
 FILE_SYSCTL="/etc/sysctl.d/99-custom-tuning.conf"
 FILE_LIMITS="/etc/security/limits.d/99-custom-tuning.conf"
 FILE_SYSTEMD="/etc/systemd/system.conf.d/99-custom-tuning.conf"
 FILE_MODULES="/etc/modules-load.d/custom-modules.conf"
 FILE_SERVICE="/etc/systemd/system/sysctl-persist.service"
 
-echo ">>> Starting Clean, Idempotent & Persistent Server Setup..."
+echo ">>> Starting Server Optimization Script..."
 
-# --- 1. SSH Setup ---
+# =======================================================
+# 1. SSH Configuration
+# =======================================================
 echo "[+] Configuring SSH..."
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
-touch ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys
-grep -qF "$SSH_KEY" ~/.ssh/authorized_keys || echo "$SSH_KEY" >> ~/.ssh/authorized_keys
 
-# Reset & Configure SSHD
-sed -i 's/^Port .*/#&/' /etc/ssh/sshd_config
-sed -i "/^Port $SSH_PORT/d" /etc/ssh/sshd_config
-echo "Port $SSH_PORT" >> /etc/ssh/sshd_config
+# Ensure directory and file exist to prevent errors
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+touch ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+
+# Append key only if it doesn't exist
+if ! grep -qF "$SSH_KEY" ~/.ssh/authorized_keys; then
+    echo "$SSH_KEY" >> ~/.ssh/authorized_keys
+fi
+
+# SSHD Config: Comment out old ports, add new one, enforce security
+# We use sed to ensure we don't duplicate lines on multiple runs
+sed -i 's/^Port /#Port /' /etc/ssh/sshd_config
+if ! grep -q "^Port $SSH_PORT" /etc/ssh/sshd_config; then
+    echo "Port $SSH_PORT" >> /etc/ssh/sshd_config
+fi
+
 sed -i 's/^#\?PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
 sed -i 's/^#\?PermitEmptyPasswords .*/PermitEmptyPasswords no/' /etc/ssh/sshd_config
 sed -i 's/^#\?PubkeyAuthentication .*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
 
-# --- 2. UFW Firewall ---
-echo "[+] Configuring UFW..."
+# =======================================================
+# 2. UFW Firewall (No Reset)
+# =======================================================
+echo "[+] Configuring Firewall..."
+# Install quietly if missing
 command -v ufw >/dev/null || apt-get install -y -qq ufw
-echo "y" | ufw reset >/dev/null
+
+# Apply rules (ufw handles duplicates automatically)
 ufw default deny incoming
 ufw default allow outgoing
 ufw limit $SSH_PORT/tcp comment 'SSH Custom'
 ufw allow 80/tcp
 ufw allow 443/tcp
+
+# Enable without disruption
 echo "y" | ufw enable >/dev/null
 
-# --- 3. ZRAM Setup ---
+# =======================================================
+# 3. ZRAM Setup
+# =======================================================
 echo "[+] Configuring ZRAM..."
 apt-get install -y -qq zram-tools
+
+# Update config (Overwriting specific lines)
 sed -i 's/^#\?ALGO=.*/ALGO=zstd/' /etc/default/zramswap
 sed -i 's/^#\?PERCENT=.*/PERCENT=50/' /etc/default/zramswap
 systemctl restart zramswap
 
-# --- 4. Kernel Modules ---
-echo "[+] Setting Kernel Modules..."
+# =======================================================
+# 4. Kernel Modules (Persistence)
+# =======================================================
+echo "[+] setting up Kernel Modules..."
+# Overwrite file to ensure cleanliness
 cat > "$FILE_MODULES" <<EOF
 tcp_bbr
 nf_conntrack
 EOF
-modprobe tcp_bbr nf_conntrack
 
-# --- 5. Sysctl Tuning ---
-echo "[+] Applying Sysctl Rules..."
+# Load immediately
+modprobe tcp_bbr
+modprobe nf_conntrack
+
+# =======================================================
+# 5. Sysctl Tuning
+# =======================================================
+echo "[+] Writing Sysctl Rules..."
 cat > "$FILE_SYSCTL" <<EOF
 # Custom Network Tuning
 net.ipv4.tcp_fack = 1
@@ -140,8 +171,10 @@ net.ipv4.icmp_echo_ignore_broadcasts = 1
 net.ipv4.icmp_ignore_bogus_error_responses = 1
 EOF
 
-# --- 6. System Limits ---
-echo "[+] Configuring Limits..."
+# =======================================================
+# 6. System Limits
+# =======================================================
+echo "[+] Writing Limits..."
 cat > "$FILE_LIMITS" <<EOF
 root soft nofile 1000000
 root hard nofile 1000000
@@ -161,8 +194,10 @@ root soft memlock unlimited
 * soft memlock unlimited
 EOF
 
-# --- 7. Systemd Config ---
-echo "[+] Configuring Systemd..."
+# =======================================================
+# 7. Systemd Global Config
+# =======================================================
+echo "[+] Writing Systemd Config..."
 mkdir -p /etc/systemd/system.conf.d
 cat > "$FILE_SYSTEMD" <<EOF
 [Manager]
@@ -172,14 +207,19 @@ DefaultLimitNOFILE=infinity
 DefaultLimitNPROC=infinity
 DefaultTasksMax=infinity
 EOF
+systemctl daemon-reexec
 
-# --- 8. FORCE PERSISTENCE (The Fix) ---
-echo "[+] Enabling Boot Persistence Service..."
-# This service runs sysctl --system AFTER modules and network are ready
+# =======================================================
+# 8. Fix Persistence (Critical Step)
+# =======================================================
+echo "[+] Installing Persistence Service..."
+# This service runs sysctl re-apply AFTER network and modules are ready.
+# This fixes the issue where settings are lost on reboot.
+
 cat > "$FILE_SERVICE" <<EOF
 [Unit]
-Description=Apply Sysctl Settings After Boot
-After=network.target modules-load.service
+Description=Re-apply Sysctl Settings After Boot
+After=systemd-modules-load.service network.target
 
 [Service]
 Type=oneshot
@@ -190,12 +230,17 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 
-# Enable the fix
 systemctl daemon-reload
-systemctl enable sysctl-persist.service
+systemctl enable sysctl-persist.service >/dev/null 2>&1
 
-# --- Finalization ---
+# =======================================================
+# 9. Final Actions
+# =======================================================
+# Apply sysctl now (might show errors for BBR if modules aren't fully loaded yet, 
+# but the service above fixes it for reboot)
 sysctl --system >/dev/null 2>&1
+
 systemctl restart sshd
-echo ">>> Setup Complete. Persistence issue fixed with custom systemd service."
-echo ">>> Reboot now to verify."
+
+echo ">>> Configuration Complete."
+echo ">>> Settings will persist after reboot."
