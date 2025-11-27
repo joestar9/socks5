@@ -2498,7 +2498,7 @@ main_menu() {
         echo "   4. Configure Auto-Send"
         echo "   5. Configure Upload Method"
         echo "   6. Script Configuration"
-        echo "   7. Manage Additional Directories (NEW)"
+        echo "   7. Manage Additional Directories"
         echo ""
         echo "   8. Update Script"
         echo "   9. Remove Script"
