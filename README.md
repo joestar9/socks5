@@ -1,43 +1,49 @@
-To install the Psiphon service script, execute the following command:
+# socks5 Tools – Quick Installation Guide
+
+## Install Psiphon Service
 
 ```bash
 curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/Pinstaller.sh | bash
 ```
 
-check Psiphon ip
-
+Check your Psiphon IP:
 ```bash
 curl --socks5-hostname 127.0.0.1:7001 https://ifconfig.me
 ```
 
-To install the Tor service, execute the following command:
+---
+
+## Install Tor Service
 
 ```bash
 curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/tor.sh | bash
 ```
 
-check Tor ip
-
+Check your Tor IP:
 ```bash
 curl --socks5-hostname 127.0.0.1:6001 https://ifconfig.me
 ```
 
-To install the sysctl service, execute the following command:
+---
+
+## Install Sysctl Optimization
 
 ```bash
 curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/install-sysctl.sh | bash
 ```
 
-To install the VPS optimizer, execute the following command:
+---
+
+## Install VPS Optimizer
 
 ```bash
 curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/optimizer.sh | bash
 ```
 
+---
 
-To install the rw-backup, execute the following command:
+## Install and Run RW-Backup Script
 
 ```bash
 curl -o ~/backup-restore.sh https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/rw-backup.sh && chmod +x ~/backup-restore.sh && ~/backup-restore.sh
 ```
-
