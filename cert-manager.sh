@@ -44,34 +44,28 @@ fi
 print_header
 
 # ==========================================
-# 1. PREREQUISITES
+# 1. SILENT INIT (Prerequisites & Setup)
 # ==========================================
-echo -e "${YELLOW}:: Checking Prerequisites...${NC}"
-
+# Only print if something is MISSING
 if ! command -v curl &> /dev/null || ! command -v socat &> /dev/null; then
-    echo -e "   Installing curl, socat, cron..."
+    echo -e "${YELLOW}:: Installing missing dependencies...${NC}"
     apt update -q && apt install -y curl socat cron tar > /dev/null 2>&1
 fi
 
 ACME_BIN="$HOME/.acme.sh/acme.sh"
 if [ ! -f "$ACME_BIN" ]; then
-    echo -e "   Installing acme.sh..."
+    echo -e "${YELLOW}:: Installing acme.sh...${NC}"
     curl -s https://get.acme.sh | sh > /dev/null
-    check_status "acme.sh installed." "Failed to install acme.sh"
+    if [ $? -ne 0 ]; then echo -e "${RED}Failed to install acme.sh${NC}"; exit 1; fi
     [ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc"
-else
-    echo -e "$ICON_OK acme.sh is ready."
 fi
 
-# Switch to Let's Encrypt
-echo -e "${YELLOW}:: Setting Default CA to Let's Encrypt...${NC}"
+# Set Default CA to Let's Encrypt (Silent)
 "$ACME_BIN" --set-default-ca --server letsencrypt > /dev/null 2>&1
-echo -e "$ICON_OK CA set to Let's Encrypt."
 
 # ==========================================
 # 2. DOMAIN SELECTION
 # ==========================================
-echo ""
 echo -e "${CYAN}:: Domain Configuration${NC}"
 echo -e "   ${YELLOW}Tip: You can enter multiple domains separated by space.${NC}"
 read -e -p "   Enter Domain(s): " ALL_DOMAINS
@@ -115,7 +109,7 @@ if [ -d "$CERT_ECC" ] || [ -d "$CERT_RSA" ]; then
 fi
 
 # ==========================================
-# 4. ISSUANCE (Smart Logic)
+# 4. ISSUANCE
 # ==========================================
 if [ "$SKIP_ISSUANCE" -eq 0 ]; then
     echo -e "\n${CYAN}:: Certificate Settings${NC}"
@@ -127,7 +121,7 @@ if [ "$SKIP_ISSUANCE" -eq 0 ]; then
     read -p "     Select [1-2]: " k_opt
     [ "$k_opt" == "1" ] && KEY_LENGTH="2048" || KEY_LENGTH="ec-256"
 
-    # Define Expected Cert Path for Smart Check
+    # Expected Path
     if [ "$KEY_LENGTH" == "ec-256" ]; then
         EXPECTED_CERT_FILE="$HOME/.acme.sh/${MAIN_DOMAIN}_ecc/${MAIN_DOMAIN}.cer"
     else
@@ -157,26 +151,26 @@ if [ "$SKIP_ISSUANCE" -eq 0 ]; then
                 read -e -p "     -> Cloudflare Token: " CF_Token
                 read -e -p "     -> Cloudflare Account ID: " CF_Account_ID
                 export CF_Token CF_Account_ID
-                CMD="$ACME_BIN --issue $FLAGS --dns dns_cf --keylength $KEY_LENGTH"
+                CMD="$ACME_BIN --issue $FLAGS --dns dns_cf --keylength $KEY_LENGTH --force"
             else
                 # Manual Wildcard
-                CMD="$ACME_BIN --issue $FLAGS --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please --keylength $KEY_LENGTH"
+                CMD="$ACME_BIN --issue $FLAGS --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please --keylength $KEY_LENGTH --force"
                 IS_MANUAL=1
             fi
             ;;
         2)
             # Standard HTTP
             echo -e "${YELLOW}:: Ensuring Port 80 is free...${NC}"
-            CMD="$ACME_BIN --issue $ACME_DOMAIN_FLAGS --standalone --keylength $KEY_LENGTH"
+            CMD="$ACME_BIN --issue $ACME_DOMAIN_FLAGS --standalone --keylength $KEY_LENGTH --force"
             ;;
         3)
             # Manual DNS List
-            CMD="$ACME_BIN --issue $ACME_DOMAIN_FLAGS --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please --keylength $KEY_LENGTH"
+            CMD="$ACME_BIN --issue $ACME_DOMAIN_FLAGS --dns --yes-I-know-dns-manual-mode-enough-go-ahead-please --keylength $KEY_LENGTH --force"
             IS_MANUAL=1
-            FLAGS="$ACME_DOMAIN_FLAGS" # For manual renew step
+            FLAGS="$ACME_DOMAIN_FLAGS"
             ;;
         *)
-            CMD="$ACME_BIN --issue $ACME_DOMAIN_FLAGS --standalone --keylength $KEY_LENGTH"
+            CMD="$ACME_BIN --issue $ACME_DOMAIN_FLAGS --standalone --keylength $KEY_LENGTH --force"
             ;;
     esac
 
@@ -184,19 +178,15 @@ if [ "$SKIP_ISSUANCE" -eq 0 ]; then
     echo -e "\n${YELLOW}:: Processing Request (Let's Encrypt)...${NC}"
     
     if [ "$IS_MANUAL" -eq 1 ]; then
-        # Run Issue First
+        # Run Issue First (Show Output for TXT)
         eval "$CMD"
         
-        # SMART CHECK: Did it issue immediately (cached TXT)?
         if [ -f "$EXPECTED_CERT_FILE" ]; then
             echo -e "\n${GREEN}✔ Verification Cached! Certificate issued immediately.${NC}"
-            echo -e "   Skipping manual TXT step..."
         else
-            # Not found -> It's waiting for TXT
             echo -e "\n${RED}>>> ACTION REQUIRED: Add TXT record(s) to DNS <<<${NC}"
             read -p "    Press ENTER after adding..."
             
-            # Now Renew/Verify
             RENEW_CMD="$ACME_BIN --renew $FLAGS --yes-I-know-dns-manual-mode-enough-go-ahead-please --dns"
             eval "$RENEW_CMD"
             check_status "Certificate Issued Successfully!" "Issuance FAILED."
@@ -244,12 +234,19 @@ if [ "$mode_opt" == "1" ] && [ "$SKIP_ISSUANCE" -eq 0 ]; then
    INSTALL_FLAGS="-d $MAIN_DOMAIN -d *.$MAIN_DOMAIN"
 fi
 
+# Run install quietly to avoid mess
 "$ACME_BIN" --install-cert $INSTALL_FLAGS $ECC_FLAG \
     --fullchain-file "$T_DIR/${MAIN_DOMAIN}.crt" \
     --key-file "$T_DIR/${MAIN_DOMAIN}.key" \
-    --reloadcmd "echo 'Cert Updated'"
+    --reloadcmd "echo 'Cert Updated'" > /dev/null 2>&1
 
-check_status "Certificate Installed!" "Installation Failed!"
+# Check if files exist as a success indicator
+if [ -f "$T_DIR/${MAIN_DOMAIN}.crt" ]; then
+    echo -e "$ICON_OK Certificate Installed!"
+else
+    echo -e "$ICON_FAIL Installation Failed!"
+    exit 1
+fi
 
 # ==========================================
 # 6. CRON JOB
@@ -267,4 +264,4 @@ echo -e " ${ICON_ARROW} Main Domain: ${GREEN}$MAIN_DOMAIN${NC}"
 echo -e " ${ICON_ARROW} CRT File:    ${YELLOW}$T_DIR/${MAIN_DOMAIN}.crt${NC}"
 echo -e " ${ICON_ARROW} Key File:    ${YELLOW}$T_DIR/${MAIN_DOMAIN}.key${NC}"
 echo -e " ${ICON_ARROW} Renewal:     ${GREEN}Auto (Every 30 days)${NC}"
-echo -e "${BLUE}============================================================${NC}"
+echo -e "${BLUE}======================
