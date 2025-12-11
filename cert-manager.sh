@@ -264,4 +264,4 @@ echo -e " ${ICON_ARROW} Main Domain: ${GREEN}$MAIN_DOMAIN${NC}"
 echo -e " ${ICON_ARROW} CRT File:    ${YELLOW}$T_DIR/${MAIN_DOMAIN}.crt${NC}"
 echo -e " ${ICON_ARROW} Key File:    ${YELLOW}$T_DIR/${MAIN_DOMAIN}.key${NC}"
 echo -e " ${ICON_ARROW} Renewal:     ${GREEN}Auto (Every 30 days)${NC}"
-echo -e "${BLUE}======================
+echo -e "${BLUE}============================================================${NC}"
