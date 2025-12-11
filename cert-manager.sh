@@ -21,10 +21,11 @@ ICON_ARROW="${MAGENTA}➤${NC}"
 # ==========================================
 print_header() {
     clear
-    echo -e "${BLUE}============================================================${NC}"
-    echo -e "${BLUE}       💎 DEBIAN 13 SSL CERTIFICATE MANAGER 💎            ${NC}"
-    echo -e "${BLUE}          Powered by acme.sh | Smart Mode                 ${NC}"
-    echo -e "${BLUE}============================================================${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${MAGENTA}         🔐  SSL CERTIFICATE MANAGER  🔐            ${NC}"
+    echo -e "${CYAN}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${GREEN}               ⚡ Powered by acme.sh                ${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 }
 
