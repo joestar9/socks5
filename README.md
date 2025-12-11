@@ -48,11 +48,10 @@ curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/optimi
 curl -o ~/backup-restore.sh https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/rw-backup.sh && chmod +x ~/backup-restore.sh && ~/backup-restore.sh
 ```
 
-
 ---
 
 ## Install Cert-Manager
 
 ```bash
-<(curl -Ls https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/cert-manager.sh)
+bash <(curl -Ls https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/cert-manager.sh)
 ```
