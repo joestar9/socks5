@@ -1,4 +1,4 @@
-# socks5 Tools – Quick Installation Guide
+# Tools – Quick Installation
 
 ## Install Psiphon Service
 
