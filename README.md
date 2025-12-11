@@ -1,58 +1,44 @@
-# Tools – Quick Installation
+# 🚀 VPS Essentials Toolkit
 
-## Install Psiphon Service
+A collection of useful scripts for VPS configuration, proxy setup, and system optimization.
+
+---
+
+### 🌀 1. Psiphon Tunnel
+Installs Psiphon service running on Socks5 port `7001`.
 
 ```bash
-curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/Pinstaller.sh | bash
-```
+bash <(curl -Ls https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/Pinstaller.sh)
+Verify IP:
 
-Check your Psiphon IP:
-```bash
+bash
 curl --socks5-hostname 127.0.0.1:7001 https://ifconfig.me
-```
+🧅 2. Tor Service
+Installs Tor service running on Socks5 port 6001.
 
----
+bash
+bash <(curl -Ls https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/tor.sh)
+Verify IP:
 
-## Install Tor Service
-
-```bash
-curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/tor.sh | bash
-```
-
-Check your Tor IP:
-```bash
+bash
 curl --socks5-hostname 127.0.0.1:6001 https://ifconfig.me
-```
+🛠️ 3. Network Optimization (BBR & Sysctl)
+Optimizes kernel parameters for better network throughput and lower latency.
 
----
+bash
+bash <(curl -Ls https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/install-sysctl.sh)
+⚡ 4. VPS Optimizer
+General system cleanup and performance tuning.
 
-## Install Sysctl Optimization
+bash
+bash <(curl -Ls https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/optimizer.sh)
+💾 5. Backup & Restore (RW-Backup)
+Easily backup or restore your panel configurations.
 
-```bash
-curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/install-sysctl.sh | bash
-```
+bash
+bash <(curl -Ls https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/rw-backup.sh)
+🔐 6. SSL Certificate Manager
+Automated SSL issuance using acme.sh & Let's Encrypt (Supports Wildcard & Multi-domain).
 
----
-
-## Install VPS Optimizer
-
-```bash
-curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/optimizer.sh | bash
-```
-
----
-
-## Install and Run RW-Backup Script
-
-```bash
-curl -o ~/backup-restore.sh https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/rw-backup.sh && chmod +x ~/backup-restore.sh && ~/backup-restore.sh
-```
-
-
----
-
-## Install Cert-Manager
-
-```bash
-curl -s https://raw.githubusercontent.com/joestar9/socks5/refs/heads/main/cert-manager.sh | bash
-```
+bash
+bash <(curl -Ls https://raw.githubusercontent.com/joestar9/socks5/refs/head
