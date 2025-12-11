@@ -22,7 +22,7 @@ print_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${MAGENTA}         🔐  SSL CERTIFICATE MANAGER  🔐            ${NC}"
     echo -e "${CYAN}────────────────────────────────────────────────────────────${NC}"
-    echo -e "${GREEN}               ⚡ Powered by acme.sh                ${NC}"
+    echo -e "${GREEN}      ⚡ Powered by acme.sh | 🔒 Let's Encrypt      ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
 }
@@ -62,6 +62,11 @@ if [ ! -f "$ACME_BIN" ]; then
 else
     echo -e "$ICON_OK acme.sh is ready."
 fi
+
+# Switch to Let's Encrypt
+echo -e "${YELLOW}:: Setting Default CA to Let's Encrypt...${NC}"
+"$ACME_BIN" --set-default-ca --server letsencrypt > /dev/null 2>&1
+echo -e "$ICON_OK CA set to Let's Encrypt."
 
 # ==========================================
 # 2. DOMAIN SELECTION
@@ -176,7 +181,7 @@ if [ "$SKIP_ISSUANCE" -eq 0 ]; then
     esac
 
     # Execute
-    echo -e "\n${YELLOW}:: Processing Request...${NC}"
+    echo -e "\n${YELLOW}:: Processing Request (Let's Encrypt)...${NC}"
     
     if [ "$IS_MANUAL" -eq 1 ]; then
         # Run Issue First
