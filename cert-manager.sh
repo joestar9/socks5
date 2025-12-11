@@ -1,7 +1,4 @@
 #!/bin/bash
-clear
-# Auto-fix Windows line endings
-sed -i 's/\r$//' "$0" 2>/dev/null
 
 # ==========================================
 # COLORS & GRAPHICS
@@ -21,11 +18,13 @@ ICON_ARROW="${MAGENTA}➤${NC}"
 # HELPER FUNCTIONS
 # ==========================================
 print_header() {
+    clear
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${MAGENTA}         🔐  SSL CERTIFICATE MANAGER  🔐            ${NC}"
     echo -e "${CYAN}────────────────────────────────────────────────────────────${NC}"
     echo -e "${GREEN}               ⚡ Powered by acme.sh                ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
 }
 
 check_status() {
